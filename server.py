@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Get bot token from environment variable
+PORT = int(os.environ.get("PORT", 5000))  # Default port 5000, but Render provides a dynamic port
 WEBHOOK_URL = f"https://your-app.onrender.com/{TOKEN}"  # Replace with your Render app URL
 
 @app.route(f"/{TOKEN}", methods=["POST"])
@@ -34,4 +35,4 @@ def set_webhook():
 if __name__ == "__main__":
     # Set webhook in a separate thread
     threading.Thread(target=set_webhook).start()
-    app.run(host="0.0.0.0", port=5000)
+    app.run(host="0.0.0.0", port=PORT)
