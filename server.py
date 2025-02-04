@@ -3,7 +3,7 @@ import telegram
 import os
 import threading
 import logging
-from bot import bot  # Import bot instance
+from bot import bot, dispatcher  # Import bot instance & dispatcher
 
 # Logging Setup
 logging.basicConfig(level=logging.INFO)
@@ -11,14 +11,14 @@ logging.basicConfig(level=logging.INFO)
 # Flask app setup
 app = Flask(__name__)
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Get token from environment variable
-WEBHOOK_URL = f"https://your-render-app.onrender.com/{TOKEN}"  # Replace with your Render app URL
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Get bot token from environment variable
+WEBHOOK_URL = f"https://your-app.onrender.com/{TOKEN}"  # Replace with your Render app URL
 
 @app.route(f"/{TOKEN}", methods=["POST"])
 def receive_update():
     """Receive update from Telegram and process it."""
     update = telegram.Update.de_json(request.get_json(), bot)
-    bot.process_new_updates([update])
+    dispatcher.process_update(update)
     return "OK", 200
 
 @app.route("/")
