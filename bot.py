@@ -1,8 +1,8 @@
 import os
 import logging
 import yaml
-from telegram import Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
+from telegram import Update, Bot
+from telegram.ext import Dispatcher, CommandHandler, MessageHandler, Filters, CallbackContext
 from deploy import deploy_repository  # Deployment function
 
 # Logging Setup
@@ -14,6 +14,10 @@ with open("config.yaml", "r") as file:
 
 TELEGRAM_BOT_TOKEN = config["telegram_bot_token"]
 ALLOWED_USERS = config.get("allowed_users", [])  # List of allowed Telegram user IDs
+
+# Initialize bot & dispatcher
+bot = Bot(token=TELEGRAM_BOT_TOKEN)
+dispatcher = Dispatcher(bot, None, use_context=True)
 
 def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text("Send me a GitHub repository URL to deploy!")
@@ -40,15 +44,6 @@ def handle_message(update: Update, context: CallbackContext) -> None:
     else:
         update.message.reply_text(f"❌ Deployment Failed!\n\nError: {message}")
 
-def main():
-    updater = Updater(TELEGRAM_BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
-
-    dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
-
-    updater.start_polling()
-    updater.idle()
-
-if __name__ == "__main__":
-    main()
+# Add handlers to dispatcher
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(MessageHandler(Filters.text & ~Filters.command, handle_message))
