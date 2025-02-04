@@ -1,20 +1,37 @@
-from flask import Flask
+from flask import Flask, request
+import telegram
+import os
 import threading
-from bot import main  # Import Telegram bot function
+import logging
+from bot import bot  # Import bot instance
 
+# Logging Setup
+logging.basicConfig(level=logging.INFO)
+
+# Flask app setup
 app = Flask(__name__)
 
-@app.route('/')
+TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")  # Get token from environment variable
+WEBHOOK_URL = f"https://your-render-app.onrender.com/{TOKEN}"  # Replace with your Render app URL
+
+@app.route(f"/{TOKEN}", methods=["POST"])
+def receive_update():
+    """Receive update from Telegram and process it."""
+    update = telegram.Update.de_json(request.get_json(), bot)
+    bot.process_new_updates([update])
+    return "OK", 200
+
+@app.route("/")
 def home():
-    return "Bot is running!"
+    return "Bot is running!", 200
 
-def run_bot():
-    main()  # Start the Telegram bot
+def set_webhook():
+    """Set Telegram Webhook"""
+    bot.delete_webhook()
+    bot.set_webhook(WEBHOOK_URL)
+    logging.info(f"Webhook set to: {WEBHOOK_URL}")
 
-if __name__ == '__main__':
-    # Run Telegram bot in a separate thread
-    bot_thread = threading.Thread(target=run_bot)
-    bot_thread.start()
-    
-    # Run Flask web server
-    app.run(host='0.0.0.0', port=5000)
+if __name__ == "__main__":
+    # Set webhook in a separate thread
+    threading.Thread(target=set_webhook).start()
+    app.run(host="0.0.0.0", port=5000)
